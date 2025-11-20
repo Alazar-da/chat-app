@@ -38,7 +38,7 @@ export default function AuthForm() {
 
   useEffect(() => {
     if (!loading && user) {
-      router.push("/");
+      router.push("/chat");
     }
   }, [user, loading, router]);
 
