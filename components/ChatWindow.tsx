@@ -26,8 +26,6 @@ import {
   FiTrash2, 
   FiX,
   FiSmile,
-  FiMoreVertical,
-  FiXCircle,
   FiDownload
 } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';

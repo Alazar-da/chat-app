@@ -25,6 +25,7 @@ interface ChatUser {
   displayName?: string;
   photoURL?: string;
   lastMessage?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   lastMessageTimestamp?: any;
   chatId?: string;
 }
@@ -75,6 +76,7 @@ export default function PrivateChat({ user }: PrivateChatProps) {
       setSearchLoading(true);
       try {
         const results = await searchUsers(user.uid, q);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const merged = results.map((u: any) => {
           const existing = chatUsers.find(c => c.id === u.id);
           return { ...u, chatId: existing?.chatId };

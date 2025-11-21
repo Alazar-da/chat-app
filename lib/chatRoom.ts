@@ -5,7 +5,6 @@ import {
   getDoc,
   addDoc,
   updateDoc,
-  deleteDoc,
   query,
   where,
   orderBy,
@@ -234,6 +233,7 @@ export const joinChatRoom = async (roomId: string, userId: string, userData: any
 };
 
 // Leave a chat room
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const leaveChatRoom = async (roomId: string, userId: string, userData: any): Promise<void> => {
   try {
     console.log('🚪 Leaving room:', { roomId, userId });
@@ -271,6 +271,7 @@ export const leaveChatRoom = async (roomId: string, userId: string, userData: an
 export const sendRoomMessage = async (
   roomId: string,
   senderId: string,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   userData: any,
   text: string,
   isSystemMessage: boolean = false
@@ -312,6 +313,7 @@ export const sendRoomMessage = async (
 export const sendRoomImageMessage = async (
   roomId: string,
   senderId: string,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   userData: any,
   imageUrl: string
 ): Promise<string> => {

@@ -38,7 +38,7 @@ export default function AuthForm() {
 
   useEffect(() => {
     if (!loading && user) {
-      router.push("/");
+      router.push("/chat");
     }
   }, [user, loading, router]);
 
@@ -103,11 +103,11 @@ export default function AuthForm() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 flex items-center justify-center py-8 px-4 text-slate-800">
+    <main className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 flex items-center justify-center md:py-8 py-15 px-4 text-slate-800">
       <div className="max-w-md w-full">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="w-20 h-20 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+          <div className="w-20 h-20 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl hidden md:flex items-center justify-center mx-auto mb-4 shadow-lg">
             <span className="text-2xl text-white">💬</span>
           </div>
           <h1 className="text-4xl font-bold mb-2">ChatApp</h1>
