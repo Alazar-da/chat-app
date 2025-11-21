@@ -113,7 +113,9 @@ export default function ProfilePage() {
         showMessage("✅ Profile updated successfully!");
       }
 
-    } catch (error: any) {
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    catch (error: any) {
       showMessage(`❌ Error: ${error.message}`, "error");
     } finally {
       setUpdating(false);
@@ -124,7 +126,9 @@ export default function ProfilePage() {
     try {
       await signOut(auth);
       router.push("/");
-    } catch (error: any) {
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    catch (error: any) {
       showMessage(`❌ Logout failed: ${error.message}`, "error");
     }
   };
@@ -141,7 +145,9 @@ export default function ProfilePage() {
       });
       setImageUrl(secureUrl);
       showMessage("✅ Profile image updated!");
-    } catch (error: any) {
+    } 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    catch (error: any) {
       showMessage(`❌ Failed to upload image: ${error.message}`, "error");
     } finally {
       setUploadingImage(false);
@@ -181,7 +187,9 @@ export default function ProfilePage() {
       });
       setImageUrl(null);
       showMessage("✅ Profile image removed!");
-    } catch (error: any) {
+    } 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    catch (error: any) {
       showMessage(`❌ Failed to remove image: ${error.message}`, "error");
     } finally {
       setUpdating(false);
@@ -471,7 +479,7 @@ export default function ProfilePage() {
                     Logout
                   </button>
                   <p className="text-xs text-gray-500 text-center">
-                    You'll be signed out of all devices
+                    You&apos;ll be signed out of all devices
                   </p>
                 </div>
               </div>
