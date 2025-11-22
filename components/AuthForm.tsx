@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { FcGoogle } from "react-icons/fc";
 import { Eye, EyeOff, CheckCircle } from "lucide-react";
 import Loading from "@/components/Loading";
+import { initGoogleAuth } from "@/google-auth";
 
 function getFriendlyError(code: string) {
   switch (code) {
@@ -32,10 +33,17 @@ export default function AuthForm() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const router = useRouter();
 
+  const router = useRouter();
   const { user, login, register, loginWithGoogle, loading } = useAuth();
 
+  // --- Google Auth INITIALIZATION (WEB ONLY) ---
+  useEffect(() => {
+    initGoogleAuth();
+  }, []);
+  // ------------------------------------------------
+
+  // Redirect to chat if logged in
   useEffect(() => {
     if (!loading && user) {
       router.push("/chat");
@@ -52,21 +60,13 @@ export default function AuthForm() {
       if (isLogin) {
         await login(email, password);
         setSuccess("🎉 Login successful! Redirecting...");
-        // Redirect after a brief delay to show success message
-        setTimeout(() => {
-          router.push("/chat");
-        }, 1500);
       } else {
         await register(email, password);
         setSuccess("🎉 Account created successfully! Redirecting...");
-        // Redirect after a brief delay to show success message
-        setTimeout(() => {
-          router.push("/chat");
-        }, 1500);
       }
-    }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    catch (err: any) {
+
+      setTimeout(() => router.push("/chat"), 1200);
+    } catch (err: any) {
       setError(getFriendlyError(err.code));
     } finally {
       setSubmitting(false);
@@ -77,23 +77,20 @@ export default function AuthForm() {
     setError("");
     setSuccess("");
     setSubmitting(true);
+
     try {
       await loginWithGoogle();
       setSuccess("🎉 Google login successful! Redirecting...");
-      // Redirect after a brief delay to show success message
-      setTimeout(() => {
-        router.push("/chat");
-      }, 1500);
-      
-    } 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    catch (err: any) {
+      setTimeout(() => router.push("/chat"), 1200);
+    } catch (err: any) {
       console.error("Google sign-in error:", err);
-      setError(err?.message || "Something went wrong. Please try again.");
+      setError(err?.message || "Google login failed. Please try again.");
+    } finally {
       setSubmitting(false);
     }
   };
 
+  // Loading state
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-purple-100 flex items-center justify-center">
@@ -105,6 +102,7 @@ export default function AuthForm() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 flex items-center justify-center md:py-8 py-15 px-4 text-slate-800">
       <div className="max-w-md w-full">
+
         {/* Header */}
         <div className="text-center mb-8">
           <div className="w-20 h-20 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl hidden md:flex items-center justify-center mx-auto mb-4 shadow-lg">
@@ -114,13 +112,13 @@ export default function AuthForm() {
           <p className="text-gray-600">Connect with friends and communities</p>
         </div>
 
-        {/* Auth Card */}
+        {/* Card */}
         <div className="bg-white rounded-2xl shadow-xl p-8">
           <h2 className="text-2xl font-bold text-center mb-8">
             {isLogin ? "Welcome Back" : "Join ChatApp"}
           </h2>
 
-          {/* Success Message Box */}
+          {/* Success Message */}
           {success && (
             <div className="mb-6 bg-green-50 border border-green-200 text-green-700 px-4 py-4 rounded-xl flex items-center animate-fade-in">
               <CheckCircle className="w-5 h-5 mr-3 flex-shrink-0" />
@@ -128,7 +126,7 @@ export default function AuthForm() {
             </div>
           )}
 
-          {/* Error Message Box */}
+          {/* Error Message */}
           {error && (
             <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-4 rounded-xl flex items-center animate-fade-in">
               <span className="mr-3">⚠️</span>
@@ -136,22 +134,25 @@ export default function AuthForm() {
             </div>
           )}
 
+          {/* Email + Password Form */}
           <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Email */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
                 Email Address
               </label>
               <input
                 type="email"
+                disabled={submitting || !!success}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200"
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
                 placeholder="Enter your email"
                 required
-                disabled={submitting || !!success}
               />
             </div>
 
+            {/* Password */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
                 Password
@@ -159,26 +160,23 @@ export default function AuthForm() {
               <div className="relative">
                 <input
                   type={showPassword ? "text" : "password"}
+                  disabled={submitting || !!success}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 pr-12"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 pr-12 transition-all"
                   placeholder="Enter your password"
                   required
-                  disabled={submitting || !!success}
                 />
                 <button
                   type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors duration-200 disabled:opacity-50"
                   disabled={submitting || !!success}
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
                 >
-                  {showPassword ? (
-                    <EyeOff className="w-5 h-5" />
-                  ) : (
-                    <Eye className="w-5 h-5" />
-                  )}
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
+
               {!isLogin && (
                 <p className="text-xs text-gray-500 mt-2">
                   Password must be at least 6 characters long
@@ -186,13 +184,14 @@ export default function AuthForm() {
               )}
             </div>
 
+            {/* Submit Button */}
             <button
               type="submit"
               disabled={submitting || !!success}
-              className={`w-full bg-gradient-to-r from-indigo-500 to-purple-600 text-white py-3 rounded-xl font-semibold transition-all duration-200 hover:cursor-pointer ${
+              className={`w-full bg-gradient-to-r from-indigo-500 to-purple-600 text-white py-3 rounded-xl font-semibold transition-all ${
                 submitting || success
-                  ? "opacity-50 cursor-not-allowed transform-none" 
-                  : "transform hover:scale-[1.02] hover:from-indigo-600 hover:to-purple-700"
+                  ? "opacity-50 cursor-not-allowed"
+                  : "hover:scale-[1.02] hover:from-indigo-600 hover:to-purple-700"
               } flex items-center justify-center`}
             >
               {submitting ? (
@@ -220,16 +219,16 @@ export default function AuthForm() {
                 <div className="flex-grow border-t border-gray-300"></div>
               </div>
 
-              {/* Google Sign In */}
+              {/* Google Button */}
               <button
                 onClick={handleGoogleLogin}
                 disabled={submitting || !!success}
-                className={`w-full flex items-center justify-center gap-3 border border-gray-300 py-3 rounded-xl font-semibold text-gray-700 transition-all duration-200 hover:cursor-pointer
-                   ${
+                className={`w-full flex items-center justify-center gap-3 border border-gray-300 py-3 rounded-xl font-semibold text-gray-700 transition-all 
+                ${
                   submitting || success
-                    ? "opacity-50 cursor-not-allowed transform-none"
-                    : "hover:bg-gray-50 hover:border-gray-400 transform hover:scale-[1.02]"}
-                `}
+                    ? "opacity-50 cursor-not-allowed"
+                    : "hover:bg-gray-50 hover:border-gray-400 hover:scale-[1.02]"
+                }`}
               >
                 <FcGoogle className="text-2xl" />
                 Continue with Google
@@ -237,7 +236,7 @@ export default function AuthForm() {
             </>
           )}
 
-          {/* Toggle between Login/Register */}
+          {/* Toggle Login / Signup */}
           {!success && (
             <div className="text-center mt-8 pt-6 border-t border-gray-200">
               <p className="text-gray-600">
@@ -248,7 +247,7 @@ export default function AuthForm() {
                     setError("");
                     setSuccess("");
                   }}
-                  className="ml-2 text-indigo-600 hover:text-indigo-700 font-semibold transition-colors duration-200 hover:cursor-pointer"
+                  className="ml-2 text-indigo-600 hover:text-indigo-700 font-semibold"
                   disabled={submitting}
                 >
                   {isLogin ? "Sign up" : "Sign in"}
@@ -266,9 +265,7 @@ export default function AuthForm() {
             </p>
           </div>
         )}
-
-        </div>
-      
+      </div>
 
       <style jsx>{`
         @keyframes fade-in {
