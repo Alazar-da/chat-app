@@ -4,4 +4,6 @@
     <string name="title_activity_main">chat-app</string>
     <string name="package_name">com.example.app</string>
     <string name="custom_url_scheme">com.example.app</string>
+    <string name="server_client_id">576182804983-g2ei66pm1qjdmppjlbq2i2gut6bddn1l.apps.googleusercontent.com</string>
+
 </resources>
