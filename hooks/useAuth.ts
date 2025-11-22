@@ -7,9 +7,13 @@ import {
   onAuthStateChanged,
   signInWithPopup,
   User,
+   signInWithCredential, 
+  GoogleAuthProvider
 } from "firebase/auth";
 import { auth, db, googleProvider } from "@/lib/firebase";
 import { doc, setDoc, getDoc, collection, query, where, getDocs } from "firebase/firestore";
+import { Capacitor } from "@capacitor/core";
+import { GoogleAuth } from "@codetrix-studio/capacitor-google-auth";
 
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
@@ -103,30 +107,48 @@ export function useAuth() {
     await signInWithEmailAndPassword(auth, email, password);
   };
 
-  // 🧩 Google Login
-  const loginWithGoogle = async () => {
-    const result = await signInWithPopup(auth, googleProvider);
-    const user = result.user;
-    const userRef = doc(db, "users", user.uid);
-    const userSnap = await getDoc(userRef);
+  // 🔄 Google Login
+ const loginWithGoogle = async () => {
+  let user;
 
-    if (!userSnap.exists()) {
+  if (Capacitor.getPlatform() !== "web") {
+    // 📱 Native mobile Google login (Capacitor)
+    const googleUser = await GoogleAuth.signIn();
+
+    const idToken = googleUser.authentication.idToken;
+    const credential = GoogleAuthProvider.credential(idToken);
+
+    const result = await signInWithCredential(auth, credential);
+    user = result.user;
+  } else {
+    // 🌐 Web login (browser)
+    const result = await signInWithPopup(auth, googleProvider);
+    user = result.user;
+  }
+
+  // --- Firestore user creation logic ---
+  const userRef = doc(db, "users", user.uid);
+  const userSnap = await getDoc(userRef);
+
+  if (!userSnap.exists()) {
+    const username = await generateUniqueUsername(user);
+
+    await setDoc(userRef, {
+      uid: user.uid,
+      email: user.email,
+      username,
+      displayName: user.displayName || null,
+      createdAt: new Date(),
+    });
+  } else {
+    const data = userSnap.data();
+    if (!data.username) {
       const username = await generateUniqueUsername(user);
-      await setDoc(userRef, {
-        uid: user.uid,
-        email: user.email,
-        username,
-        displayName: user.displayName || null,
-        createdAt: new Date(),
-      });
-    } else {
-      const data = userSnap.data();
-      if (!data.username) {
-        const username = await generateUniqueUsername(user);
-        await setDoc(userRef, { ...data, username }, { merge: true });
-      }
+      await setDoc(userRef, { ...data, username }, { merge: true });
     }
-  };
+  }
+};
+
 
   // 🚪 Logout
   const logout = async () => await signOut(auth);
