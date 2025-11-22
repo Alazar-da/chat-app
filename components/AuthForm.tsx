@@ -66,7 +66,9 @@ export default function AuthForm() {
       }
 
       setTimeout(() => router.push("/chat"), 1200);
-    } catch (err: any) {
+    } 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    catch (err: any) {
       setError(getFriendlyError(err.code));
     } finally {
       setSubmitting(false);
@@ -82,7 +84,9 @@ export default function AuthForm() {
       await loginWithGoogle();
       setSuccess("🎉 Google login successful! Redirecting...");
       setTimeout(() => router.push("/chat"), 1200);
-    } catch (err: any) {
+    }
+     // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    catch (err: any) {
       console.error("Google sign-in error:", err);
       setError(err?.message || "Google login failed. Please try again.");
     } finally {
