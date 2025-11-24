@@ -27,13 +27,15 @@
             android:grantUriPermissions="true">
             <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/file_paths" />
         </provider>
+
+            <meta-data
+    android:name="com.google.android.gms.auth.api.credentials.CLIENT_ID"
+    android:value="576182804983-g2ei66pm1qjdmppjlbq2i2gut6bddn1l.apps.googleusercontent.com" />
     </application>
 
     <!-- Permissions -->
 
-    <meta-data
-    android:name="com.google.android.gms.auth.api.credentials.576182804983-g2ei66pm1qjdmppjlbq2i2gut6bddn1l.apps.googleusercontent.com"
-    android:value="576182804983-g2ei66pm1qjdmppjlbq2i2gut6bddn1l.apps.googleusercontent.com" />
+
 
 
     <uses-permission android:name="android.permission.INTERNET" />
