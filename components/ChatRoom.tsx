@@ -278,7 +278,7 @@ export default function ChatRoom({ user }: ChatRoomProps) {
         {selectedRoom && (
           <div className="flex-1 w-full flex flex-col h-screen overflow-hidden bg-white relative animate-fadeIn">
             {/* Header */}
-            <div className="fixed top-0 lg:left-64 left-0 right-0 p-4 bg-gradient-to-r from-indigo-500 to-purple-600 text-white z-50">
+            <div className="fixed top-0 lg:left-64 left-0 right-0 p-4 bg-gradient-to-r from-indigo-500 to-purple-600 text-white z-50 pt-10 lg:pt-4 pb-6">
   <div className="max-w-5xl mx-auto flex items-center justify-between">
               <div className="flex items-center space-x-3">
                 <button
