@@ -142,8 +142,8 @@ export default function ChatRoom({ user }: ChatRoomProps) {
             selectedRoom ? 'hidden' : 'flex'
           } flex-col w-full lg:w-96 border-r border-slate-200 bg-white/80 backdrop-blur-md shadow-xl`}
         >
-          <div className="p-4 border-b flex justify-between items-center bg-gradient-to-r from-indigo-500 to-purple-600 text-white">
-            <h2 className="text-lg font-semibold flex items-center space-x-2 justify-center w-full">
+          <div className="px-4 border-b flex justify-between items-center bg-gradient-to-r from-indigo-500 to-purple-600 text-white pt-10 lg:pt-4 pb-6">
+            <h2 className="text-lg font-semibold flex items-center space-x-2 justify-center w-full pt-1">
               <HiOutlineChatAlt2 className="text-2xl" />
               <span>Chat Rooms</span>
             </h2>

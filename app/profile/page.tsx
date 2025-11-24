@@ -17,7 +17,7 @@ import { compressAndUploadImage } from "@/utils/uploadImage";
 import Sidebar from "@/components/SideBar";
 import { Eye, EyeOff, Upload } from "lucide-react";
 import Loading from "@/components/Loading";
-import { FiX } from "react-icons/fi";
+import { FiUser, FiX } from "react-icons/fi";
 
 export default function ProfilePage() {
   const { user } = useAuth();
@@ -210,9 +210,12 @@ export default function ProfilePage() {
       {/* Main Content */}
       <div className="flex-1 flex flex-col lg:ml-0">
         {/* Mobile Header */}
-        <div className="lg:hidden bg-white border-b p-4 flex items-center justify-center">
+        <div className="lg:hidden bg-white border-b p-4 flex items-center justify-center bg-gradient-to-r from-indigo-500 to-purple-600 text-white pt-10 lg:pt-4 pb-6">
 
-          <h1 className="text-xl font-bold">My Profile</h1>
+          <h2 className="text-lg font-semibold flex items-center space-x-2 justify-center w-full pt-1">
+                        <FiUser className="text-2xl" />
+                       <span>My Profile</span> 
+          </h2>
           <div className="w-8"></div>
         </div>
 
