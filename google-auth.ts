@@ -8,7 +8,7 @@ export function initGoogleAuth() {
   }
 
   GoogleAuth.initialize({
-    clientId: "576182804983-tn4sariou6g144584e79aaglbk6lbabp.apps.googleusercontent.com",
+    clientId: "576182804983-8vdsir74pstcvd4leifn2s76b43b0sr9.apps.googleusercontent.com",
     scopes: ["profile", "email"],
     grantOfflineAccess: true,
   });
