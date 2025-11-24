@@ -29,7 +29,7 @@
         </provider>
 
             <meta-data
-    android:name="com.google.android.gms.auth.api.credentials.CLIENT_ID"
+    android:name="com.google.android.gms.auth.api.credentials.ClientId"
     android:value="576182804983-g2ei66pm1qjdmppjlbq2i2gut6bddn1l.apps.googleusercontent.com" />
     </application>
 
