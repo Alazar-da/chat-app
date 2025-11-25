@@ -113,6 +113,7 @@ export function useAuth() {
 
   if (Capacitor.getPlatform() !== "web") {
     // 📱 Native mobile Google login (Capacitor)
+      await GoogleAuth.signOut(); 
     const googleUser = await GoogleAuth.signIn();
 
     const idToken = googleUser.authentication.idToken;

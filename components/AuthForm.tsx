@@ -7,6 +7,7 @@ import { FcGoogle } from "react-icons/fc";
 import { Eye, EyeOff, CheckCircle } from "lucide-react";
 import Loading from "@/components/Loading";
 import { initGoogleAuth } from "@/google-auth";
+import { registerPush } from "@/lib/pushNotifications";
 
 function getFriendlyError(code: string) {
   switch (code) {
@@ -42,6 +43,11 @@ export default function AuthForm() {
     initGoogleAuth();
   }, []);
   // ------------------------------------------------
+useEffect(() => {
+  if (user) {
+    registerPush();
+  }
+}, [user]);
 
   // Redirect to chat if logged in
   useEffect(() => {
