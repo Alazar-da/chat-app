@@ -12,6 +12,7 @@
     "@capacitor/android": "^7.4.4",
     "@capacitor/cli": "^7.4.4",
     "@capacitor/core": "^7.4.4",
+    "@capacitor/push-notifications": "^7.0.3",
     "@codetrix-studio/capacitor-google-auth": "^3.4.0-rc.4",
     "browser-image-compression": "^2.0.2",
     "cloudinary": "^2.8.0",
