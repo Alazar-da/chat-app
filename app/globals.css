@@ -24,12 +24,3 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
-
-:root {
-  --safe-bottom: env(safe-area-inset-bottom);
-  --safe-top: env(safe-area-inset-top);
-}
-
-.safe-area {
-  padding-bottom: calc(20px + var(--safe-bottom));
-}
