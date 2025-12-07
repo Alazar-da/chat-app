@@ -9,14 +9,18 @@ import {
   generateChatId,
   searchUsers,
   getOrCreatePrivateChat,
+  deletePrivateChat,
 } from '@/lib/privateChat';
 import {
   HiOutlineArrowLeft,
   HiOutlineChatAlt2,
   HiOutlineX,
   HiOutlineExclamationCircle,
+  HiOutlineTrash,
+  HiOutlineExclamation
 } from 'react-icons/hi';
 import { FaSearch } from 'react-icons/fa';
+import { BsThreeDotsVertical } from 'react-icons/bs';
 
 interface ChatUser {
   id: string;
@@ -34,6 +38,76 @@ interface PrivateChatProps {
   user: User;
 }
 
+// Delete Confirmation Modal Component
+const DeleteChatConfirmationModal = ({ 
+  isOpen, 
+  onClose, 
+  onConfirm, 
+  userName 
+}: { 
+  isOpen: boolean; 
+  onClose: () => void; 
+  onConfirm: () => void; 
+  userName: string; 
+}) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4 animate-fadeIn">
+      <div className="bg-gradient-to-br from-white to-gray-50 rounded-2xl max-w-md w-full shadow-2xl transform transition-all border border-gray-200">
+        {/* Header */}
+        <div className="p-6 border-b border-gray-200">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-12 h-12 rounded-full bg-gradient-to-r from-red-100 to-red-50 flex items-center justify-center">
+              <HiOutlineExclamation className="text-2xl text-red-600" />
+            </div>
+            <div>
+              <h3 className="text-xl font-bold text-gray-900">Delete Chat</h3>
+              <p className="text-sm text-gray-600">This action cannot be undone</p>
+            </div>
+          </div>
+          <div className="bg-red-50 border-l-4 border-red-500 p-3 rounded-lg">
+            <p className="text-sm text-red-800">
+              Are you sure you want to delete your chat with <span className="font-semibold">"{userName}"</span>?
+            </p>
+            <ul className="mt-2 text-xs text-red-700 space-y-1">
+              <li className="flex items-center gap-1">
+                <div className="w-1 h-1 bg-red-500 rounded-full"></div>
+                All messages will be permanently deleted
+              </li>
+              <li className="flex items-center gap-1">
+                <div className="w-1 h-1 bg-red-500 rounded-full"></div>
+                Chat history will be lost for both participants
+              </li>
+              <li className="flex items-center gap-1">
+                <div className="w-1 h-1 bg-red-500 rounded-full"></div>
+                This action is irreversible
+              </li>
+            </ul>
+          </div>
+        </div>
+        
+        {/* Action Buttons */}
+        <div className="px-6 py-5 flex gap-3">
+          <button
+            onClick={onClose}
+            className="flex-1 bg-gray-200 text-gray-800 py-3 rounded-xl font-semibold hover:bg-gray-300 transition-all duration-200 active:scale-[0.98]"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            className="flex-1 bg-gradient-to-r from-red-500 to-red-600 text-white py-3 rounded-xl font-semibold hover:shadow-lg hover:shadow-red-200 transition-all duration-200 active:scale-[0.98] flex items-center justify-center gap-2"
+          >
+            <HiOutlineTrash className="text-lg" />
+            Delete Chat
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export default function PrivateChat({ user }: PrivateChatProps) {
   const [chatUsers, setChatUsers] = useState<ChatUser[]>([]);
   const [searchResults, setSearchResults] = useState<ChatUser[]>([]);
@@ -43,6 +117,8 @@ export default function PrivateChat({ user }: PrivateChatProps) {
   const [searchLoading, setSearchLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const searchRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -122,7 +198,38 @@ export default function PrivateChat({ user }: PrivateChatProps) {
       setLoading(false);
     }
   };
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+
+  // Handle delete chat
+  const handleDeleteChat = () => {
+    if (!selectedUser) return;
+    setShowDeleteModal(true);
+    setIsMenuOpen(false);
+  };
+
+  // Confirm delete chat
+  const confirmDeleteChat = async () => {
+    if (!selectedUser?.chatId) return;
+    
+    setLoading(true);
+    try {
+      await deletePrivateChat(selectedUser.chatId, user.uid, selectedUser.id);
+      
+      // Update chat list
+      const updated = await fetchUserChatList(user.uid);
+      setChatUsers(updated);
+      
+      // Close current chat
+      setSelectedUser(null);
+      setError(null);
+      setShowDeleteModal(false);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete chat');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const formatTime = (t: any) => {
     if (!t) return '';
     const d = t.toDate();
@@ -139,6 +246,14 @@ export default function PrivateChat({ user }: PrivateChatProps) {
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-slate-50 to-purple-100 text-slate-800">
       <Sidebar chat={!!selectedUser} />
+
+      {/* Delete Confirmation Modal */}
+      <DeleteChatConfirmationModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={confirmDeleteChat}
+        userName={selectedUser ? getDisplayName(selectedUser) : ''}
+      />
 
       <div className="flex-1 flex flex-col lg:flex-row transition-all duration-300">
         {/* Left Side — Chats + Search */}
@@ -263,25 +378,57 @@ export default function PrivateChat({ user }: PrivateChatProps) {
         {selectedUser && (
           <div className="flex-1 flex flex-col min-h-screen bg-white relative animate-fadeIn">
             <div className="fixed top-0 lg:left-64 left-0 right-0 p-4 bg-gradient-to-r from-indigo-500 to-purple-600 text-white z-50 pt-10 lg:pt-4 pb-6">
-
-      <div className="max-w-5xl mx-auto flex items-center space-x-3">
-                <button
-                  className="p-2 rounded-full bg-white/20 hover:bg-white/30 hover:cursor-pointer"
-                  onClick={() => setSelectedUser(null)}
-                >
-                  <HiOutlineArrowLeft className="text-xl" />
-                </button>
-                <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center font-semibold">
-                  {getDisplayName(selectedUser)[0].toUpperCase()}
+              <div className="max-w-5xl mx-auto flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <button
+                    className="p-2 rounded-full bg-white/20 hover:bg-white/30 hover:cursor-pointer lg:hidden"
+                    onClick={() => setSelectedUser(null)}
+                  >
+                    <HiOutlineArrowLeft className="text-xl" />
+                  </button>
+                  <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center font-semibold">
+                    {getDisplayName(selectedUser)[0].toUpperCase()}
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-lg">{getDisplayName(selectedUser)}</h3>
+                    <p className="text-sm opacity-90">{selectedUser.email}</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="font-semibold">{getDisplayName(selectedUser)}</h3>
-                  <p className="text-xs opacity-90">{selectedUser.email}</p>
+                
+                {/* Delete Chat Menu */}
+                <div className="relative">
+                  <button
+                    onClick={() => setIsMenuOpen(!isMenuOpen)}
+                    className="p-2 rounded-lg bg-white/20 hover:bg-white/30 transition-colors"
+                  >
+                    <BsThreeDotsVertical className="text-xl" />
+                  </button>
+                  
+                  {isMenuOpen && (
+                    <>
+                      <div 
+                        className="fixed inset-0 z-40"
+                        onClick={() => setIsMenuOpen(false)}
+                      />
+                      <div className="absolute right-0 top-full mt-1 w-48 bg-white rounded-xl shadow-lg border border-gray-200 z-50 py-1 animate-fadeIn">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteChat();
+                          }}
+                          className="w-full px-4 py-2.5 text-left text-red-600 hover:bg-red-50 flex items-center gap-2 transition-colors"
+                        >
+                          <HiOutlineTrash className="text-sm" />
+                          Delete Chat
+                        </button>
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
 
-            <div className="flex-1">
+            <div className="flex-1 pt-20">
               <ChatWindow
                 chatId={generateChatId(user.uid, selectedUser.id)}
                 currentUser={user}

@@ -12,7 +12,8 @@ import {
   setDoc,
   Timestamp,
   serverTimestamp,
-  FieldValue
+  FieldValue,
+  deleteDoc
 } from 'firebase/firestore';
 import { db } from './firebase';
 
@@ -496,5 +497,62 @@ export const isRoomMember = async (roomId: string, userId: string): Promise<bool
   } catch (error) {
     console.error('❌ Error checking room membership:', error);
     return false;
+  }
+};
+
+
+// Delete chat room (owner only)
+export const deleteChatRoom = async (roomId: string): Promise<void> => {
+  try {
+    console.log('🗑️ Deleting chat room:', roomId);
+    
+    // First, check if there are messages and delete them
+    const messagesRef = collection(db, 'chatRooms', roomId, 'messages');
+    const messagesSnapshot = await getDocs(messagesRef);
+    
+    // Delete all messages
+    const deletePromises = messagesSnapshot.docs.map(doc => 
+      deleteDoc(doc.ref)
+    );
+    await Promise.all(deletePromises);
+    
+    // Delete the room itself
+    const roomRef = doc(db, 'chatRooms', roomId);
+    await deleteDoc(roomRef);
+    
+    console.log('✅ Room deleted successfully');
+  } catch (error) {
+    console.error('❌ Error deleting chat room:', error);
+    throw error;
+  }
+};
+
+// Update chat room (owner only)
+export const updateChatRoom = async (
+  roomId: string,
+  name: string,
+  description?: string,
+  isPublic?: boolean
+): Promise<void> => {
+  try {
+    console.log('📝 Updating chat room:', roomId);
+    
+    const roomRef = doc(db, 'chatRooms', roomId);
+    const updates: any = {
+      name: name.trim(),
+      description: description?.trim() || ''
+    };
+    
+    if (isPublic !== undefined) {
+      updates.isPublic = isPublic;
+    }
+    
+    console.log('📤 Update data:', updates);
+    await updateDoc(roomRef, updates);
+    
+    console.log('✅ Room updated successfully');
+  } catch (error) {
+    console.error('❌ Error updating chat room:', error);
+    throw error;
   }
 };

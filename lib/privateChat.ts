@@ -11,7 +11,9 @@ import {
   onSnapshot,
   setDoc,
   Timestamp,
-  serverTimestamp 
+  serverTimestamp,
+  getFirestore,
+  writeBatch 
 } from 'firebase/firestore';
 import { db } from './firebase';
 
@@ -309,3 +311,115 @@ export const sendImageMessage = async (
     console.error("❌ Error sending image message:", error);
   }
 };
+
+export const deletePrivateChat = async (
+  chatId: string,
+  currentUserId: string,
+  otherUserId: string
+): Promise<void> => {
+  try {
+    if (!chatId || !currentUserId || !otherUserId) {
+      throw new Error('Missing required parameters');
+    }
+
+    const db = getFirestore();
+    const batch = writeBatch(db); // Correct way to create a batch
+
+    // Reference to the chat document
+    const chatRef = doc(db, 'privateChats', chatId);
+    const chatDoc = await getDoc(chatRef);
+
+    if (!chatDoc.exists()) {
+      throw new Error('Chat not found');
+    }
+
+    const chatData = chatDoc.data();
+
+    // Verify the user is part of this chat
+    if (!chatData.participants || !chatData.participants.includes(currentUserId)) {
+      throw new Error('You are not authorized to delete this chat');
+    }
+
+    // Delete all messages in the chat
+    const messagesRef = collection(db, 'privateChats', chatId, 'messages');
+    const messagesSnapshot = await getDocs(messagesRef);
+    
+    messagesSnapshot.forEach((messageDoc) => {
+      batch.delete(messageDoc.ref);
+    });
+
+    // Delete the chat document
+    batch.delete(chatRef);
+
+    // Update both users' chat lists to remove this chat
+    const currentUserChatRef = doc(db, 'users', currentUserId, 'privateChats', otherUserId);
+    const otherUserChatRef = doc(db, 'users', otherUserId, 'privateChats', currentUserId);
+
+    // Check if documents exist before deleting
+    const [currentUserChatDoc, otherUserChatDoc] = await Promise.all([
+      getDoc(currentUserChatRef),
+      getDoc(otherUserChatRef)
+    ]);
+
+    if (currentUserChatDoc.exists()) {
+      batch.delete(currentUserChatRef);
+    }
+
+    if (otherUserChatDoc.exists()) {
+      batch.delete(otherUserChatRef);
+    }
+
+    // Commit the batch
+    await batch.commit();
+
+    console.log(`Chat ${chatId} deleted successfully`);
+  } catch (error) {
+    console.error('Error deleting private chat:', error);
+    throw error;
+  }
+};
+
+// If you prefer soft delete (mark as deleted but keep data):
+export const deletePrivateChatSoft = async (
+  chatId: string,
+  currentUserId: string,
+  otherUserId: string
+): Promise<void> => {
+  try {
+    if (!chatId || !currentUserId || !otherUserId) {
+      throw new Error('Missing required parameters');
+    }
+
+    const db = getFirestore();
+
+    // Mark chat as deleted for current user only (soft delete)
+    const userChatRef = doc(db, 'users', currentUserId, 'privateChats', otherUserId);
+    
+    await updateDoc(userChatRef, {
+      deleted: true,
+      deletedAt: serverTimestamp(),
+    });
+
+    console.log(`Chat ${chatId} marked as deleted for user ${currentUserId}`);
+  } catch (error) {
+    console.error('Error soft deleting private chat:', error);
+    throw error;
+  }
+};
+
+// If you need to update fetchUserChatList to filter soft-deleted chats:
+/*
+export const fetchUserChatList = async (userId: string): Promise<ChatUser[]> => {
+  const db = getFirestore();
+  const userChatsRef = collection(db, 'users', userId, 'privateChats');
+  
+  // Query to exclude soft-deleted chats
+  const q = query(
+    userChatsRef,
+    where('deleted', '!=', true)
+  );
+  
+  const snapshot = await getDocs(q);
+  // ... rest of your function
+};
+*/
