@@ -6,7 +6,6 @@ import Sidebar from '@/components/SideBar';
 import ChatWindow from '@/components/ChatWindow';
 import {
   createChatRoom,
-  getUserChatRooms,
   joinChatRoom,
   leaveChatRoom,
   deleteChatRoom,
@@ -25,10 +24,6 @@ import {
   HiOutlineTrash,
   HiOutlineUsers,
   HiOutlineGlobe,
-  HiOutlineLockClosed,
-  HiOutlineCheck,
-  HiOutlineChevronDown,
-  HiOutlineCalendar,
   HiOutlineArrowRight,
   HiOutlineExclamation
 } from 'react-icons/hi';
@@ -167,7 +162,7 @@ const DeleteConfirmationModal = ({
           </div>
           <div className="bg-red-50 border-l-4 border-red-500 p-3 rounded-lg">
             <p className="text-sm text-red-800">
-              Are you sure you want to delete <span className="font-semibold">"{roomName}"</span>?
+              Are you sure you want to delete <span className="font-semibold">&ldquo;{roomName}&rdquo;</span>?
             </p>
             <ul className="mt-2 text-xs text-red-700 space-y-1">
               <li className="flex items-center gap-1">
@@ -513,7 +508,7 @@ export default function ChatRoom({ user }: ChatRoomProps) {
                       <HiOutlineSearch className="text-xl text-gray-400" />
                     </div>
                     <p className="text-gray-500 text-sm">
-                      No rooms found matching "{searchQuery}"
+                      No rooms found matching &ldquo;{searchQuery}&rdquo;
                     </p>
                   </div>
                 ) : (
@@ -617,7 +612,7 @@ export default function ChatRoom({ user }: ChatRoomProps) {
                     </div>
                     <h3 className="text-gray-700 font-medium mb-2">No rooms yet</h3>
                     <p className="text-gray-500 text-sm max-w-xs mx-auto">
-                      You haven't joined any rooms yet. Create one or search for rooms to join!
+                      You haven&lsquo;t joined any rooms yet. Create one or search for rooms to join!
                     </p>
                   </div>
                 ) : (

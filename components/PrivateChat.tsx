@@ -68,7 +68,7 @@ const DeleteChatConfirmationModal = ({
           </div>
           <div className="bg-red-50 border-l-4 border-red-500 p-3 rounded-lg">
             <p className="text-sm text-red-800">
-              Are you sure you want to delete your chat with <span className="font-semibold">"{userName}"</span>?
+              Are you sure you want to delete your chat with <span className="font-semibold">&ldquo;{userName}&rdquo;</span>?
             </p>
             <ul className="mt-2 text-xs text-red-700 space-y-1">
               <li className="flex items-center gap-1">

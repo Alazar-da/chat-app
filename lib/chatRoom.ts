@@ -538,6 +538,7 @@ export const updateChatRoom = async (
     console.log('📝 Updating chat room:', roomId);
     
     const roomRef = doc(db, 'chatRooms', roomId);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const updates: any = {
       name: name.trim(),
       description: description?.trim() || ''
