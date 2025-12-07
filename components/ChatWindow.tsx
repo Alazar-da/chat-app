@@ -29,6 +29,10 @@ import {
   FiDownload
 } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Capacitor } from '@capacitor/core';
+import { Filesystem, Directory } from '@capacitor/filesystem';
+import { Toast } from '@capacitor/toast';
+import { Share } from '@capacitor/share';
 
 interface ChatWindowProps {
   chatId: string;
@@ -69,6 +73,7 @@ export default function ChatWindow({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const deleteRef = useRef<HTMLDivElement>(null);
+  const [downloading, setDownloading] = useState(false);
 
   useEffect(() => {
     if (!chatId) return;
@@ -216,6 +221,114 @@ export default function ChatWindow({
     }
   };
 
+
+// Enhanced mobile download function with sharing option
+const downloadImageMobile = async (imageUrl: string, imageName?: string) => {
+  try {
+    // Show loading
+    await Toast.show({
+      text: 'Preparing image...',
+      duration: 'short'
+    });
+
+    // Fetch image
+    const response = await fetch(imageUrl);
+    const blob = await response.blob();
+    
+    if (Capacitor.getPlatform() === 'ios') {
+      // For iOS, use share dialog as primary method
+      return await shareImageMobile(blob, imageName);
+    } else {
+      // For Android, save to Downloads
+      return await saveImageToDownloads(blob, imageName);
+    }
+  } catch (error) {
+    console.error('Mobile download error:', error);
+    throw error;
+  }
+};
+
+// Add this function anywhere in your component file
+const blobToBase64 = (blob: Blob): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      if (typeof reader.result === 'string') {
+        const base64 = reader.result.split(',')[1];
+        resolve(base64);
+      } else {
+        reject(new Error('Failed to convert blob to base64'));
+      }
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+};
+
+// Save image to Downloads (Android)
+const saveImageToDownloads = async (blob: Blob, fileName?: string) => {
+  try {
+    const base64Data = await blobToBase64(blob);
+    const timestamp = new Date().getTime();
+    const name = fileName || `chat-image-${timestamp}.jpg`;
+    
+    const result = await Filesystem.writeFile({
+      path: `Download/${name}`,
+      data: base64Data,
+      directory: Directory.ExternalStorage,
+      recursive: true
+    });
+    
+    await Toast.show({
+      text: `Saved to Downloads/${name}`,
+      duration: 'long'
+    });
+    
+    return result;
+  } catch (error) {
+    // If saving fails, try sharing
+    console.log('Saving failed, trying share:', error);
+    return await shareImageMobile(blob, fileName);
+  }
+};
+
+// Share image (iOS/alternative)
+const shareImageMobile = async (blob: Blob, fileName?: string) => {
+  try {
+    const base64Data = await blobToBase64(blob);
+    const timestamp = new Date().getTime();
+    const name = fileName || `chat-image-${timestamp}.jpg`;
+    
+    // Save to cache first
+    const savedFile = await Filesystem.writeFile({
+      path: name,
+      data: base64Data,
+      directory: Directory.Cache,
+      recursive: true
+    });
+    
+    // Get file URI
+    const fileUri = savedFile.uri;
+    
+    // Share the file
+    await Share.share({
+      title: 'Share Image',
+      text: 'Chat Image',
+      url: fileUri,
+      dialogTitle: 'Save or Share Image'
+    });
+    
+    return savedFile;
+  } catch (error) {
+    console.error('Share failed:', error);
+    await Toast.show({
+      text: 'Failed to save or share image',
+      duration: 'long'
+    });
+    throw error;
+  }
+};
+
   const startEditing = (message: ChatMessage) => {
     setEditingMessage(message);
     setNewMessage(message.text);
@@ -323,7 +436,10 @@ export default function ChatWindow({
       {/* Image Viewer Popup */}
       <AnimatePresence>
         {selectedImage && (
-          <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4">
+          <div onClick={() => {
+                    setSelectedImage(null);
+                    setSelectedImageMessageId(null);
+                  }} className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4">
             <motion.div
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -333,28 +449,59 @@ export default function ChatWindow({
               {/* Top Action Buttons */}
               <div className="absolute -top-12 right-0 flex gap-4">
                 {/* Download Button */}
-                <button
-                  onClick={async () => {
-                    try {
-                      const response = await fetch(selectedImage, { mode: "cors" });
-                      const blob = await response.blob();
-                      const url = window.URL.createObjectURL(blob);
-                      const link = document.createElement("a");
-                      link.href = url;
-                      link.download = `chat-image-${Date.now()}.jpg`;
-                      document.body.appendChild(link);
-                      link.click();
-                      document.body.removeChild(link);
-                      window.URL.revokeObjectURL(url);
-                    } catch (err) {
-                      console.error("Failed to download image:", err);
-                    }
-                  }}
-                  className="text-white hover:text-green-300 transition-colors duration-200 cursor-pointer flex items-center gap-2 bg-black/50 backdrop-blur-sm rounded-lg px-4 py-2 border border-white/20"  title="Download image"
-                >
-                  <FiDownload className="w-5 h-5" />
-                  <span className="text-sm">Download</span>
-                </button>
+  
+<button
+  onClick={async () => {
+    try {
+      // Show loading state
+      setDownloading(true);
+      
+      if (Capacitor.isNativePlatform()) {
+        await downloadImageMobile(selectedImage);
+      } else {
+        // Web version
+        const response = await fetch(selectedImage, { mode: "cors" });
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `chat-image-${Date.now()}.jpg`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      }
+    } catch (err) {
+      console.error("Failed to download image:", err);
+      // Show error toast
+      if (Capacitor.isNativePlatform()) {
+        await Toast.show({
+          text: 'Failed to download image',
+          duration: 'long'
+        });
+      } else {
+        alert('Failed to download image');
+      }
+    } finally {
+      setDownloading(false);
+    }
+  }}
+  disabled={downloading}
+  className={`text-white hover:text-green-300 transition-colors duration-200 cursor-pointer flex items-center gap-2 bg-black/50 backdrop-blur-sm rounded-lg px-4 py-2 border border-white/20 ${downloading ? 'opacity-50 cursor-not-allowed' : ''}`}
+  title="Download image"
+>
+  {downloading ? (
+    <>
+      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+      <span className="text-sm">Downloading...</span>
+    </>
+  ) : (
+    <>
+      <FiDownload className="w-5 h-5" />
+      <span className="text-sm">Download</span>
+    </>
+  )}
+</button>
 
                 {/* Delete Button - Only show if user owns the message */}
                 {selectedImageMessageId && messages.find(m => m.id === selectedImageMessageId)?.senderId === currentUser.uid && (
@@ -394,7 +541,7 @@ export default function ChatWindow({
       </AnimatePresence>
 
       {/* Messages Container */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-3 mt-16 mb-24">
+      <div className="flex-1 overflow-y-auto p-4 space-y-3 xl:mt-24 mb:mt-18  mt-10 mb-24">
         <AnimatePresence>
           {messages.filter(msg => !msg.deleted).map((message, index) => (
             <motion.div
