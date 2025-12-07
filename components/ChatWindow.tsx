@@ -33,6 +33,8 @@ import { Capacitor } from '@capacitor/core';
 import { Filesystem, Directory } from '@capacitor/filesystem';
 import { Toast } from '@capacitor/toast';
 import { Share } from '@capacitor/share';
+import useAndroidBackButton from "@/utils/useAndroidBackButton";
+import { useRouter } from "next/navigation";
 
 interface ChatWindowProps {
   chatId: string;
@@ -74,6 +76,13 @@ export default function ChatWindow({
   const menuRef = useRef<HTMLDivElement>(null);
   const deleteRef = useRef<HTMLDivElement>(null);
   const [downloading, setDownloading] = useState(false);
+
+   const router = useRouter();
+
+  useAndroidBackButton(() => {
+    router.back();
+  });
+
 
   useEffect(() => {
     if (!chatId) return;

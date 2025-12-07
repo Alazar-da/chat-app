@@ -17,6 +17,8 @@ buildscript {
 
 apply from: "variables.gradle"
 
+tasks.register("testClasses")
+
 allprojects {
     repositories {
         google()

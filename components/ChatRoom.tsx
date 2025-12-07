@@ -401,8 +401,8 @@ export default function ChatRoom({ user }: ChatRoomProps) {
           {/* Header */}
           <div className="px-4 border-b flex flex-col gap-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white pt-10 lg:pt-4 pb-6">
             <div className="flex justify-between items-center">
-              <h2 className="text-xl font-bold flex items-center gap-2">
-                <HiOutlineChatAlt2 className="text-2xl" />
+              <h2 className="text-lg font-semibold flex items-center space-x-2 justify-center w-full pt-1">
+               <HiOutlineChatAlt2 className="text-2xl" />
                 <span>Chat Rooms</span>
               </h2>
               {error && (

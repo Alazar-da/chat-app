@@ -18,6 +18,7 @@ import Sidebar from "@/components/SideBar";
 import { Eye, EyeOff, Upload } from "lucide-react";
 import Loading from "@/components/Loading";
 import { FiUser, FiX } from "react-icons/fi";
+import useAndroidBackButton from "@/utils/useAndroidBackButton";
 
 export default function ProfilePage() {
   const { user } = useAuth();
@@ -34,6 +35,12 @@ export default function ProfilePage() {
   const [messageType, setMessageType] = useState<"success" | "error">("success");
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [uploadingImage, setUploadingImage] = useState(false);
+
+
+  useAndroidBackButton(() => {
+    router.back();
+  });
+
 
 
 

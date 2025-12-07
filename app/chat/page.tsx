@@ -3,9 +3,15 @@
 import ChatRoom from '@/components/ChatRoom';
 import { useAuth } from '@/hooks/useAuth';
 import Loading from '@/components/Loading';
+import { useRouter } from "next/navigation";
+import useAndroidBackButton from "@/utils/useAndroidBackButton";
 
 export default function Home() {
   const { user, loading } = useAuth();
+  const router = useRouter();
+    useAndroidBackButton(() => {
+      router.back();
+    });
 
   if (loading) {
     return <Loading text="Loading chat..." />;

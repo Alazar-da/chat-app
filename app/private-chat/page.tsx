@@ -3,9 +3,16 @@
 import PrivateChat from '@/components/PrivateChat';
 import { useAuth } from '@/hooks/useAuth';
 import Loading from '@/components/Loading';
+import useAndroidBackButton from "@/utils/useAndroidBackButton";
+import { useRouter } from "next/navigation";
 
 export default function PrivateChatPage() {
   const { user, loading } = useAuth();
+  const router = useRouter();
+    useAndroidBackButton(() => {
+      router.back();
+    });
+  
 
   if (loading) {
     return <Loading text="Loading private chats..." />;
